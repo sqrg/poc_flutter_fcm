@@ -35,9 +35,14 @@ dependencies:
 
   firebase_messaging: ^7.0.3
 
+  flutter_secure_storage: ^3.3.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  build_runner:
+  injectable_generator: ^1.0.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

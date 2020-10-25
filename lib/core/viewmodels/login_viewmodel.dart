@@ -1,30 +1,39 @@
-import 'dart:convert';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stacked/stacked.dart';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
+import 'package:poc_flutter_fcm/locator.dart';
+import 'package:poc_flutter_fcm/core/services/authentication_service.dart';
+
+import 'package:poc_flutter_fcm/constants.dart' as Constants;
 
 class LoginViewModel extends BaseViewModel {
-  final String baseUrl = 'https://e7cd3f76a62b.ngrok.io';
+  final FlutterSecureStorage _secureStorage = locator<FlutterSecureStorage>();
+  final AuthenticationService _authenticationService = locator<AuthenticationService>();
 
-  Future login(String username, String password) async {
+  Future<bool> login(String username, String password) async {
     setBusy(true);
 
-    var deviceToken = await FirebaseMessaging().getToken();
+    String token;
 
-    var response = await http.post(
-      '$baseUrl/auth/token/',
-      body: {
-        'username': username,
-        'password': password,
-      },
-    );
+    try {
+      token = await _authenticationService.login(username, password);
 
-    if (response.statusCode == 200) {
-      var tokenResponse = jsonDecode(response.body);
+      await _secureStorage.write(key: Constants.TOKEN, value: token);
+    } catch (exception) {}
+
+    if (token != null) {
+      var deviceId = await FirebaseMessaging().getToken();
+
+      await _authenticationService.registerDevice(deviceId);
+
+      setBusy(false);
+
+      return true;
     }
 
     setBusy(false);
+
+    return false;
   }
 }
